@@ -20,14 +20,9 @@ public class ScrnSimulatorMain extends JPanel {
     private JSpinner headPositionSpinner;
     private JComboBox<String> directionCombo;
 
-    // Tracks which algo button is currently selected (radio-style: one at a time)
     private JButton selectedAlgoBtn = null;
     private String selectedAlgoName = null;
     private final Map<String, JButton> algoBtnMap = new HashMap<>();
-
-    // ==================================================
-    //               CONSTRUCTION
-    // ==================================================
 
     public ScrnSimulatorMain(MainEngine mainEngine, Branding branding, JPanel parentContainer) {
         this.branding = branding;
@@ -40,10 +35,6 @@ public class ScrnSimulatorMain extends JPanel {
         initializeMainPanel();
         initializePanels();
     }
-
-    // ==================================================
-    //               LAYOUT SETUP
-    // ==================================================
 
     public void initializeMainPanel() {
         JPanel wrapper = new JPanel(new BorderLayout());
@@ -67,6 +58,7 @@ public class ScrnSimulatorMain extends JPanel {
         initializeRightPanel();
 
         JButton backBtn = createOtherBtn("Back To Menu");
+        backBtn.setPreferredSize(new Dimension(200, 44));
         backBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         backBtn.addActionListener(e -> {
             CardLayout cl = (CardLayout) parentContainer.getLayout();
@@ -81,11 +73,12 @@ public class ScrnSimulatorMain extends JPanel {
         mainPanel.add(topBar, BorderLayout.NORTH);
         mainPanel.add(leftPanel, BorderLayout.WEST);
         mainPanel.add(rightPanel, BorderLayout.CENTER);
-    }
 
-    // ==================================================
-    //               LEFT PANEL
-    // ==================================================
+        JButton fcfsBtn = algoBtnMap.get("First Come First Serve");
+        if (fcfsBtn != null) {
+            selectAlgorithm("First Come First Serve", fcfsBtn);
+        }
+    }
 
     private void initializeLeftPanel() {
         leftPanel = new JPanel(new BorderLayout()) {
@@ -109,7 +102,7 @@ public class ScrnSimulatorMain extends JPanel {
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setBorder(new EmptyBorder(30, 30, 20, 30));
 
-        // ---- Input Sequence Label ----
+        // Input Sequence Label
         JLabel inputLabel = createHeaderLabel("Input Sequence (from 0-199)", false);
         inputLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         content.add(inputLabel);
@@ -120,7 +113,7 @@ public class ScrnSimulatorMain extends JPanel {
         content.add(subtextLabel);
         content.add(Box.createVerticalStrut(10));
 
-        // ---- Text Area ----
+        // Text Area
         inputArea = new JTextArea();
         inputArea.setFont(branding.jetBrainsRMedium);
         inputArea.setForeground(branding.light);
@@ -138,8 +131,8 @@ public class ScrnSimulatorMain extends JPanel {
         content.add(inputArea);
         content.add(Box.createVerticalStrut(24));
 
-        // ---- Row: Initial Head Position + Direction ----
-        JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 0));
+        // Initial Head Position + Direction
+        JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 80, 0));
         rowPanel.setOpaque(false);
         rowPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         rowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
@@ -183,20 +176,20 @@ public class ScrnSimulatorMain extends JPanel {
 
         rowPanel.add(dirBlock);
         content.add(rowPanel);
-        content.add(Box.createVerticalStrut(24));
+        content.add(Box.createVerticalStrut(50));
 
-        // ---- Random / Import Buttons ----
+        // Random + Import Buttons
         JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 16, 0));
         btnRow.setOpaque(false);
         btnRow.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 54));
 
-        JButton randomBtn = createOtherBtn("🎲  Random Sequence");
+        JButton randomBtn = createOtherBtn("Random Sequence");
         randomBtn.setPreferredSize(new Dimension(220, 44));
         randomBtn.setMaximumSize(new Dimension(220, 44));
         randomBtn.addActionListener(e -> generateRandomInput());
 
-        JButton importBtn = createOtherBtn("📂  Import Text File");
+        JButton importBtn = createOtherBtn("Import Text File");
         importBtn.setPreferredSize(new Dimension(220, 44));
         importBtn.setMaximumSize(new Dimension(220, 44));
         importBtn.addActionListener(e -> importFromFile());
@@ -208,7 +201,7 @@ public class ScrnSimulatorMain extends JPanel {
 
         leftPanel.add(content, BorderLayout.CENTER);
 
-        // ---- Simulate Button (footer) ----
+        // Simulate Button
         JPanel footer = new JPanel(new BorderLayout());
         footer.setOpaque(false);
         footer.setBorder(new EmptyBorder(0, 30, 30, 30));
@@ -236,9 +229,9 @@ public class ScrnSimulatorMain extends JPanel {
         simulateBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         simulateBtn.setPreferredSize(new Dimension(0, 52));
         simulateBtn.addMouseListener(new MouseAdapter() {
-            @Override public void mouseEntered(MouseEvent e)  { simulateBtn.setBackground(branding.darkGray); }
-            @Override public void mouseExited(MouseEvent e)   { simulateBtn.setBackground(branding.dark);     }
-            @Override public void mousePressed(MouseEvent e)  { simulateBtn.setBackground(branding.darkGray); }
+            @Override public void mouseEntered(MouseEvent e) { simulateBtn.setBackground(branding.darkGray); }
+            @Override public void mouseExited(MouseEvent e) { simulateBtn.setBackground(branding.dark); }
+            @Override public void mousePressed(MouseEvent e) { simulateBtn.setBackground(branding.darkGray); }
             @Override public void mouseReleased(MouseEvent e) { simulateBtn.setBackground(branding.darkGray); }
         });
         simulateBtn.addActionListener(e -> onSimulate());
@@ -246,10 +239,6 @@ public class ScrnSimulatorMain extends JPanel {
         footer.add(simulateBtn, BorderLayout.CENTER);
         leftPanel.add(footer, BorderLayout.SOUTH);
     }
-
-    // ==================================================
-    //               RIGHT PANEL (Algorithm List)
-    // ==================================================
 
     public void initializeRightPanel() {
         rightPanel = new JPanel(new BorderLayout()) {
@@ -299,7 +288,7 @@ public class ScrnSimulatorMain extends JPanel {
                     Boolean sel = (Boolean) algoBtn.getClientProperty("selected");
                     algoBtn.setBackground(Boolean.TRUE.equals(sel) ? branding.selected : branding.dark);
                 }
-                @Override public void mousePressed(MouseEvent e)  { algoBtn.setBackground(branding.selected); }
+                @Override public void mousePressed(MouseEvent e) { algoBtn.setBackground(branding.selected); }
                 @Override public void mouseReleased(MouseEvent e) {
                     Boolean sel = (Boolean) algoBtn.getClientProperty("selected");
                     algoBtn.setBackground(Boolean.TRUE.equals(sel) ? branding.selected : branding.dark);
@@ -312,13 +301,7 @@ public class ScrnSimulatorMain extends JPanel {
         }
     }
 
-    // ==================================================
-    //               ALGORITHM RADIO SELECTION
-    // ==================================================
-
-    /** Deselects any previously chosen algorithm and selects the new one. */
     private void selectAlgorithm(String name, JButton btn) {
-        // Deselect previous
         if (selectedAlgoBtn != null && selectedAlgoBtn != btn) {
             selectedAlgoBtn.putClientProperty("selected", false);
             selectedAlgoBtn.setBackground(branding.dark);
@@ -330,45 +313,41 @@ public class ScrnSimulatorMain extends JPanel {
         btn.setBackground(nowSelected ? branding.selected : branding.dark);
 
         if (nowSelected) {
-            selectedAlgoBtn  = btn;
+            selectedAlgoBtn = btn;
             selectedAlgoName = name;
             mainEngine.setChosenAlgorithm(toEngineKey(name), true);
         } else {
-            selectedAlgoBtn  = null;
+            selectedAlgoBtn = null;
             selectedAlgoName = null;
             mainEngine.setChosenAlgorithm(toEngineKey(name), false);
         }
+
+        if (name.equals("First Come First Serve") || name.equals("Shortest Seek Time First")) {
+            directionCombo.setEnabled(false);
+        } else {
+            directionCombo.setEnabled(true);
+        }
     }
 
-    /**
-     * Maps the short display name used in the UI to the full key used by MainEngine.
-     * Extend this mapping if additional algorithms are registered in MainEngine.
-     */
     private String toEngineKey(String displayName) {
         if (displayName == null) return "";
         return switch (displayName) {
-            case "First Come First Serve"   -> "First-Come, First-Served (FCFS)";
+            case "First Come First Serve" -> "First-Come, First-Served (FCFS)";
             case "Shortest Seek Time First" -> "Shortest Seek Time First (SSTF)";
-            default                         -> displayName; // SCAN, C-SCAN, LOOK, C-LOOK match exactly
+            default -> displayName;
         };
     }
-
-    // ==================================================
-    //               SIMULATE ACTION
-    // ==================================================
 
     private void onSimulate() {
         if (!validatePreSimulation()) return;
 
-        int headPos   = (int) headPositionSpinner.getValue();
-        String dir    = (String) directionCombo.getSelectedItem();
+        int headPos = (int) headPositionSpinner.getValue();
+        String dir = (String) directionCombo.getSelectedItem();
         String[] tokens = inputArea.getText().trim().split("\\s+");
         int[] refString = new int[tokens.length];
         for (int i = 0; i < tokens.length; i++)
             refString[i] = Integer.parseInt(tokens[i]);
-
-        // frameCount is repurposed as headPos for disk scheduling;
-        // direction is carried via AlgoResult (see MainEngine.runSimulation).
+        
         java.util.List<ScrnSimulatorOutput.AlgoResult> results =
             mainEngine.runSimulation(refString, headPos, dir);
 
@@ -377,10 +356,6 @@ public class ScrnSimulatorMain extends JPanel {
         CardLayout cl = (CardLayout) parentContainer.getLayout();
         cl.show(parentContainer, "SimulatorOutput");
     }
-
-    // ==================================================
-    //               VALIDATION
-    // ==================================================
 
     public boolean validatePreSimulation() {
         String raw = inputArea.getText();
@@ -415,10 +390,6 @@ public class ScrnSimulatorMain extends JPanel {
         return true;
     }
 
-    // ==================================================
-    //               FILE IMPORT
-    // ==================================================
-
     public void importFromFile() {
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Import Input Sequence from Text File");
@@ -438,20 +409,12 @@ public class ScrnSimulatorMain extends JPanel {
         }
     }
 
-    // ==================================================
-    //               RANDOM INPUT
-    // ==================================================
-
     public void generateRandomInput() {
         MainEngine.RandomInput ri = mainEngine.generateRandomInput();
         inputArea.setText(ri.inputString);
         headPositionSpinner.setValue(ri.headPosition);
         directionCombo.setSelectedItem(ri.direction);
     }
-
-    // ==================================================
-    //               STYLING HELPERS
-    // ==================================================
 
     private void styleSpinner(JSpinner spinner) {
         spinner.setBackground(branding.dark);
@@ -498,7 +461,7 @@ public class ScrnSimulatorMain extends JPanel {
                         }
                         g2.dispose();
                     }
-                    @Override public int getIconWidth()  { return 8; }
+                    @Override public int getIconWidth() { return 8; }
                     @Override public int getIconHeight() { return 6; }
                 });
             }
@@ -542,8 +505,8 @@ public class ScrnSimulatorMain extends JPanel {
                         g2.fillPolygon(xp, yp, 3);
                         g2.dispose();
                     }
-                    @Override public int getIconWidth()  { return 10; }
-                    @Override public int getIconHeight() { return 6;  }
+                    @Override public int getIconWidth() { return 10; }
+                    @Override public int getIconHeight() { return 6; }
                 });
             }
         }
@@ -575,9 +538,9 @@ public class ScrnSimulatorMain extends JPanel {
         btn.setPreferredSize(new Dimension(120, 44));
         btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         btn.addMouseListener(new MouseAdapter() {
-            @Override public void mouseEntered(MouseEvent e)  { btn.setBackground(branding.darkGray); }
-            @Override public void mouseExited(MouseEvent e)   { btn.setBackground(branding.dark);     }
-            @Override public void mousePressed(MouseEvent e)  { btn.setBackground(branding.darkGray); }
+            @Override public void mouseEntered(MouseEvent e) { btn.setBackground(branding.darkGray); }
+            @Override public void mouseExited(MouseEvent e) { btn.setBackground(branding.dark); }
+            @Override public void mousePressed(MouseEvent e) { btn.setBackground(branding.darkGray); }
             @Override public void mouseReleased(MouseEvent e) { btn.setBackground(branding.darkGray); }
         });
         return btn;
@@ -607,10 +570,6 @@ public class ScrnSimulatorMain extends JPanel {
         try { Integer.parseInt(str); return true; }
         catch (NumberFormatException e) { return false; }
     }
-
-    // ==================================================
-    //               REFRESH STYLES
-    // ==================================================
 
     public void refreshStyles() {
         inputArea.setForeground(branding.light);
@@ -645,9 +604,9 @@ public class ScrnSimulatorMain extends JPanel {
     //               GETTERS
     // ==================================================
 
-    public JPanel getLeftPanel()      { return leftPanel; }
-    public JPanel getRightPanel()     { return rightPanel; }
-    public JTextArea getInputArea()   { return inputArea; }
-    public int getHeadPosition()      { return (int) headPositionSpinner.getValue(); }
-    public String getDirection()      { return (String) directionCombo.getSelectedItem(); }
+    public JPanel getLeftPanel() { return leftPanel; }
+    public JPanel getRightPanel() { return rightPanel; }
+    public JTextArea getInputArea() { return inputArea; }
+    public int getHeadPosition() { return (int) headPositionSpinner.getValue(); }
+    public String getDirection() { return (String) directionCombo.getSelectedItem(); }
 }

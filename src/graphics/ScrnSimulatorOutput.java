@@ -13,7 +13,6 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 public class ScrnSimulatorOutput extends JPanel {
-
     private Branding branding;
     private MainEngine mainEngine;
     private JPanel parentContainer;
@@ -35,56 +34,47 @@ public class ScrnSimulatorOutput extends JPanel {
     private int currentTime = 0;
     private final List<SeekChartPanel> chartPanels = new ArrayList<>();
 
-    // -----------------------------------------------------------------------
-    //   AlgoResult — carries everything needed by output screen
-    // -----------------------------------------------------------------------
     public static class AlgoResult {
         public String algorithmName;
-        public int[]  seekSequence;   // cylinder positions in visit order (head first)
-        public int    initialHead;
-        public String direction;      // "Left" | "Right" | "N/A"
-        public int    totalSeekTime;
+        public int[] seekSequence;
+        public int initialHead;
+        public String direction;
+        public int totalSeekTime;
 
-        // Legacy page-replacement fields kept for source-compatibility
-        public int[]    referenceString;
-        public int      pageFrameCount;
-        public int      totalPageFaults;
+        public int[] referenceString;
+        public int pageFrameCount;
+        public int totalPageFaults;
         public int[][]  frameStates;
         public boolean[] hits;
     }
 
-    // -----------------------------------------------------------------------
-    //   SeekChartPanel — animated disk seek chart for one algorithm
-    // -----------------------------------------------------------------------
     private class SeekChartPanel extends JPanel {
-
         private final AlgoResult r;
-        private int revealedSegments = 0;   // how many line segments have been drawn
-        private boolean animationComplete   = false;
-        private int animSeekTime            = 0;  // live-updating seek count
+        private int revealedSegments = 0;
+        private boolean animationComplete = false;
+        private int animSeekTime = 0;
 
         // Layout constants
-        private static final int RULER_H     = 52;   // top ruler height (taller to fit all labels)
-        private static final int STEP_H      = 36;   // vertical pixels per seek step
-        private static final int LABEL_LEFT  = 10;   // left margin
-        private static final int PAD_RIGHT   = 10;
-        private static final int PAD_BOTTOM  = 20;
-        private static final int DOT_R       = 5;    // radius of stop dots
-        private static final int FIXED_W     = 1100; // fixed chart width
+        private static final int RULER_H = 52;
+        private static final int STEP_H = 36;
+        private static final int LABEL_LEFT = 10;
+        private static final int PAD_RIGHT = 10;
+        private static final int PAD_BOTTOM = 20;
+        private static final int DOT_R = 5;
+        private static final int FIXED_W = 1100;
 
         SeekChartPanel(AlgoResult r) {
             this.r = r;
             setOpaque(false);
         }
-
-        /** Called by timer — reveal one more line segment. */
+        
         void advance() {
             int totalSegments = r.seekSequence.length - 1;
             if (revealedSegments < totalSegments) {
                 revealedSegments++;
                 // Accumulate seek time dynamically
                 int from = r.seekSequence[revealedSegments - 1];
-                int to   = r.seekSequence[revealedSegments];
+                int to = r.seekSequence[revealedSegments];
                 animSeekTime += Math.abs(to - from);
                 if (revealedSegments == totalSegments) {
                     animationComplete = true;
@@ -94,9 +84,9 @@ public class ScrnSimulatorOutput extends JPanel {
         }
 
         void reset() {
-            revealedSegments  = 0;
+            revealedSegments = 0;
             animationComplete = false;
-            animSeekTime      = 0;
+            animSeekTime = 0;
             repaint();
         }
 
@@ -119,20 +109,20 @@ public class ScrnSimulatorOutput extends JPanel {
             g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
             int chartLeft = LABEL_LEFT;
-            int chartW    = FIXED_W - chartLeft - PAD_RIGHT;
+            int chartW = getWidth() - chartLeft - PAD_RIGHT;
 
-            // Build a set of all queue positions (every position in seekSequence)
+            // Build a set of all queue positions
             java.util.Set<Integer> queueSet = new java.util.HashSet<>();
             if (r.seekSequence != null) {
                 for (int pos : r.seekSequence) queueSet.add(pos);
             }
 
-            // ---- Ruler baseline ----
+            // Ruler baseline
             g2.setColor(branding.light);
             g2.setStroke(new BasicStroke(1.5f));
             g2.drawLine(chartLeft, RULER_H, chartLeft + chartW, RULER_H);
 
-            // ---- Draw every cylinder 0-199 ----
+            // Draw every cylinder 0-199
             g2.setFont(branding.jetBrainsBSmall);
             FontMetrics fm = g2.getFontMetrics();
 
@@ -141,22 +131,20 @@ public class ScrnSimulatorOutput extends JPanel {
                 boolean isQueue = queueSet.contains(cyl);
 
                 if (isQueue) {
-                    // Highlighted tick — bright, taller
                     g2.setColor(branding.light);
                     g2.setStroke(new BasicStroke(2f));
                     g2.drawLine(x, RULER_H - 10, x, RULER_H + 4);
-
-                    // Bold label above tick
+                    
                     String lbl = String.valueOf(cyl);
                     int lx = x - fm.stringWidth(lbl) / 2;
                     g2.drawString(lbl, lx, RULER_H - 13);
                 } else {
-                    // Dim tick — faint, short
                     Color dim = new Color(branding.light.getRed(), branding.light.getGreen(),
                                          branding.light.getBlue(), 55);
                     g2.setColor(dim);
                     g2.setStroke(new BasicStroke(1f));
                     g2.drawLine(x, RULER_H - 4, x, RULER_H + 2);
+
                     // Only label every 25 to avoid clutter for non-queue positions
                     if (cyl % 25 == 0) {
                         String lbl = String.valueOf(cyl);
@@ -166,7 +154,7 @@ public class ScrnSimulatorOutput extends JPanel {
                 }
             }
 
-            // ---- Seek path ----
+            // Seek path
             g2.setStroke(new BasicStroke(2.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             int steps = r.seekSequence.length;
 
@@ -208,30 +196,21 @@ public class ScrnSimulatorOutput extends JPanel {
 
             g2.dispose();
         }
-
-        /** Maps a cylinder position (0-199) to an x coordinate in the chart. */
+        
         private int cylToX(int cyl, int chartLeft, int chartW) {
             return chartLeft + (int) Math.round(cyl / 199.0 * chartW);
         }
     }
 
-    // -----------------------------------------------------------------------
-    //   Constructor
-    // -----------------------------------------------------------------------
-
     public ScrnSimulatorOutput(MainEngine mainEngine, Branding branding, JPanel parentContainer) {
-        this.branding      = branding;
-        this.mainEngine    = mainEngine;
+        this.branding = branding;
+        this.mainEngine = mainEngine;
         this.parentContainer = parentContainer;
         setLayout(new BorderLayout());
         setBackground(branding.dark);
         buildTopBar();
         buildScrollArea();
     }
-
-    // -----------------------------------------------------------------------
-    //   Top Bar
-    // -----------------------------------------------------------------------
 
     private void buildTopBar() {
         JPanel bar = new JPanel(new BorderLayout());
@@ -240,7 +219,7 @@ public class ScrnSimulatorOutput extends JPanel {
 
         // Back button
         JButton backBtn = makePillButton("Back To Simulator");
-        backBtn.setPreferredSize(new Dimension(200, 48));
+        backBtn.setPreferredSize(new Dimension(270, 48));
         backBtn.addActionListener(e -> {
             stopTimer();
             CardLayout cl = (CardLayout) parentContainer.getLayout();
@@ -278,7 +257,7 @@ public class ScrnSimulatorOutput extends JPanel {
                 item.setBorder(new EmptyBorder(8, 16, 8, 16));
                 item.addMouseListener(new MouseAdapter() {
                     @Override public void mouseEntered(MouseEvent e) { item.setBackground(branding.darkGray); }
-                    @Override public void mouseExited(MouseEvent e)  { item.setBackground(branding.dark);     }
+                    @Override public void mouseExited(MouseEvent e) { item.setBackground(branding.dark); }
                 });
                 item.addActionListener(ev -> {
                     currentSpeed = spd;
@@ -323,10 +302,6 @@ public class ScrnSimulatorOutput extends JPanel {
         add(bar, BorderLayout.NORTH);
     }
 
-    // -----------------------------------------------------------------------
-    //   Scroll Area
-    // -----------------------------------------------------------------------
-
     private void buildScrollArea() {
         scrollContent = new JPanel();
         scrollContent.setLayout(new BoxLayout(scrollContent, BoxLayout.Y_AXIS));
@@ -361,10 +336,6 @@ public class ScrnSimulatorOutput extends JPanel {
         });
     }
 
-    // -----------------------------------------------------------------------
-    //   Load Results
-    // -----------------------------------------------------------------------
-
     public void loadSimulationResults(List<AlgoResult> results) {
         stopTimer();
         scrollContent.removeAll();
@@ -381,32 +352,24 @@ public class ScrnSimulatorOutput extends JPanel {
         startTimer();
     }
 
-    // -----------------------------------------------------------------------
-    //   Algorithm Panel (card)
-    // -----------------------------------------------------------------------
-
     private JPanel buildAlgoPanel(AlgoResult r) {
 
-        // --- Seek chart (animated) ---
+        // Seek chart (animated)
         SeekChartPanel chart = new SeekChartPanel(r);
         chartPanels.add(chart);
 
-        // --- Live seek-time label ---
+        // Live seek-time label
         JLabel seekLabel = new JLabel("Total Seek Time: 0");
         seekLabel.setFont(branding.jetBrainsBMedium);
         seekLabel.setForeground(branding.light);
         seekLabel.setBorder(new EmptyBorder(10, 24, 16, 24));
 
-        // Attach a property-change listener so chart advances can update label
         chart.addPropertyChangeListener("seekTime", evt ->
             seekLabel.setText("Total Seek Time: " + evt.getNewValue())
         );
-
-        // We'll update seek label via a wrapper we pass to the timer tick.
-        // Store reference alongside the chart panel.
         chart.putClientProperty("seekLabel", seekLabel);
 
-        // --- Outer card panel ---
+        // Outer card panel
         JPanel card = new JPanel(new BorderLayout()) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -423,7 +386,6 @@ public class ScrnSimulatorOutput extends JPanel {
         card.setAlignmentX(Component.LEFT_ALIGNMENT);
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
-        // --- Header ---
         JPanel header = new JPanel();
         header.setOpaque(false);
         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
@@ -442,8 +404,7 @@ public class ScrnSimulatorOutput extends JPanel {
         header.add(monoLabel("Initial Head Position: " + r.initialHead, branding.jetBrainsRMedium, 12));
         header.add(monoLabel("Direction: " + (r.direction != null ? r.direction : "N/A"),
                 branding.jetBrainsRMedium, 12));
-
-        // --- Wrap chart in a scroll pane for horizontal overflow ---
+        
         JScrollPane chartScroll = new JScrollPane(chart,
                 JScrollPane.VERTICAL_SCROLLBAR_NEVER,
                 JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -454,15 +415,11 @@ public class ScrnSimulatorOutput extends JPanel {
         styleScrollBar(chartScroll.getHorizontalScrollBar());
         chartScroll.getHorizontalScrollBar().setPreferredSize(new Dimension(0, 6));
 
-        card.add(header,      BorderLayout.NORTH);
+        card.add(header, BorderLayout.NORTH);
         card.add(chartScroll, BorderLayout.CENTER);
-        card.add(seekLabel,   BorderLayout.SOUTH);
+        card.add(seekLabel, BorderLayout.SOUTH);
         return card;
     }
-
-    // -----------------------------------------------------------------------
-    //   Timer
-    // -----------------------------------------------------------------------
 
     private void startTimer() {
         currentTime = 0;
@@ -477,7 +434,7 @@ public class ScrnSimulatorOutput extends JPanel {
             boolean allDone = true;
             for (SeekChartPanel cp : chartPanels) {
                 cp.advance();
-                // Update the live seek-time label
+                
                 JLabel lbl = (JLabel) cp.getClientProperty("seekLabel");
                 if (lbl != null) lbl.setText("Total Seek Time: " + cp.animSeekTime);
                 if (!cp.isComplete()) allDone = false;
@@ -496,13 +453,9 @@ public class ScrnSimulatorOutput extends JPanel {
             simulationTimer.stop();
     }
 
-    // -----------------------------------------------------------------------
-    //   Export PNG
-    // -----------------------------------------------------------------------
-
     private void exportToPng() {
         try {
-            String ts   = new java.text.SimpleDateFormat("MMddyy_HHmmss").format(new java.util.Date());
+            String ts = new java.text.SimpleDateFormat("MMddyy_HHmmss").format(new java.util.Date());
             File   file = new File(ts + "_DS.png");
 
             int panelW = scrollContent.getWidth();
@@ -525,13 +478,9 @@ public class ScrnSimulatorOutput extends JPanel {
         }
     }
 
-    // -----------------------------------------------------------------------
-    //   Export PDF
-    // -----------------------------------------------------------------------
-
     private void exportToPdf() {
         try {
-            String ts   = new java.text.SimpleDateFormat("MMddyy_HHmmss").format(new java.util.Date());
+            String ts = new java.text.SimpleDateFormat("MMddyy_HHmmss").format(new java.util.Date());
             File   file = new File(ts + "_DS.pdf");
 
             int panelW = scrollContent.getWidth();
@@ -603,10 +552,6 @@ public class ScrnSimulatorOutput extends JPanel {
     private void writePdf(OutputStream out, String s) throws IOException {
         out.write(s.getBytes("ISO-8859-1"));
     }
-
-    // -----------------------------------------------------------------------
-    //   Helpers
-    // -----------------------------------------------------------------------
 
     private void setExportEnabled(boolean enabled) {
         if (exportPngBtn != null) exportPngBtn.setEnabled(enabled);

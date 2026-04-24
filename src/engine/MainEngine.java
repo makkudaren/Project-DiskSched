@@ -189,17 +189,7 @@ public class MainEngine {
             return new ImportResult(false, msg, null, -1, null);
         }
     }
-
-    // Reads, parses, and validates a .txt import file
-    // Expected format:
-    //   Input String:
-    //   50 100 75 ...
-    //
-    //   Number of frames:   <- parsed as head position for disk scheduling
-    //   125
-    //
-    //   Direction:
-    //   Right
+    
     public ImportResult importFromFile(File file) {
         String inputString = null;
         int    headPosition = -1;

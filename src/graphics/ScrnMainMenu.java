@@ -28,44 +28,36 @@ public class ScrnMainMenu extends JPanel {
     }
 
     public void initializeMainPanel() {
-        JLabel simulatorLabel = new JLabel("SpinCycle");
+        JLabel simulatorLabel = new JLabel("DiskSched");
         simulatorLabel.setFont(branding.jetBrainsBGiant);
         simulatorLabel.setForeground(branding.light);
-
-        JLabel subtitleLabel = new JLabel("Virtual Interactive Page Replacement Algorithm");        
-        subtitleLabel.setFont(branding.jetBrainsBMedium);
-        subtitleLabel.setForeground(branding.light);
 
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
-        gbc.insets = new Insets(0, 0, 0, 0);
-        add(simulatorLabel, gbc);
-
-        gbc.gridy = 1;
         gbc.insets = new Insets(0, 0, 30, 0);
-        add(subtitleLabel, gbc);
+        add(simulatorLabel, gbc);
 
         simulateBtn = createMainMenuButton(branding.lightIcoSimulate, "Simulate");
         gbc.gridx = 0;
-        gbc.gridy = 2;
+        gbc.gridy = 1;
         gbc.gridwidth = 1;
         gbc.insets = new Insets(30, 110, 30, 110);
         add(simulateBtn, gbc);
 
         howToUseBtn = createMainMenuButton(branding.lightIcoHowToUse, "How To Use");
         gbc.gridx = 1;
-        gbc.gridy = 2;
+        gbc.gridy = 1;
         add(howToUseBtn, gbc);
 
         settingsBtn = createMainMenuButton(branding.lightIcoSettings, "Settings");
         gbc.gridx = 0;
-        gbc.gridy = 3;
+        gbc.gridy = 2;
         add(settingsBtn, gbc);
 
         exitBtn = createMainMenuButton(branding.lightIcoExit, "Exit");
         gbc.gridx = 1;
-        gbc.gridy = 3;
+        gbc.gridy = 2;
         add(exitBtn, gbc);
     }
 

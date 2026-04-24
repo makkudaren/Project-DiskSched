@@ -108,7 +108,7 @@ public class ScrnSimulatorMain extends JPanel {
         content.add(inputLabel);
         content.add(Box.createVerticalStrut(4));
 
-        JLabel subtextLabel = createHeaderLabel("Space Separated Values (e.g. 6 7 9 10)", true);
+        JLabel subtextLabel = createHeaderLabel("Space Separated Values (e.g. 6 7 9 10)", false);
         subtextLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         content.add(subtextLabel);
         content.add(Box.createVerticalStrut(10));
@@ -184,14 +184,10 @@ public class ScrnSimulatorMain extends JPanel {
         btnRow.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 54));
 
-        JButton randomBtn = createOtherBtn("Random Sequence");
-        randomBtn.setPreferredSize(new Dimension(220, 44));
-        randomBtn.setMaximumSize(new Dimension(220, 44));
+        JButton randomBtn = createUtilButton(branding.lightIcoRandomProcess, "Random Queue");
         randomBtn.addActionListener(e -> generateRandomInput());
 
-        JButton importBtn = createOtherBtn("Import Text File");
-        importBtn.setPreferredSize(new Dimension(220, 44));
-        importBtn.setMaximumSize(new Dimension(220, 44));
+        JButton importBtn = createUtilButton(branding.lightIcoImportProcess, "Import Text File");
         importBtn.addActionListener(e -> importFromFile());
 
         btnRow.add(randomBtn);
@@ -485,31 +481,44 @@ public class ScrnSimulatorMain extends JPanel {
                 return this;
             }
         });
+    }
 
-        // Style the popup arrow button
-        for (int i = 0; i < box.getComponentCount(); i++) {
-            Component c = box.getComponent(i);
-            if (c instanceof AbstractButton ab) {
-                ab.setBackground(branding.dark);
-                ab.setBorderPainted(false);
-                ab.setContentAreaFilled(false);
-                ab.setIcon(new Icon() {
-                    @Override public void paintIcon(Component comp, Graphics g, int x, int y) {
-                        Graphics2D g2 = (Graphics2D) g.create();
-                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                        g2.setColor(branding.light);
-                        int w = 10, h = 6;
-                        int cx = x + w / 2;
-                        int[] xp = {x, cx, x + w};
-                        int[] yp = {y, y + h, y};
-                        g2.fillPolygon(xp, yp, 3);
-                        g2.dispose();
-                    }
-                    @Override public int getIconWidth() { return 10; }
-                    @Override public int getIconHeight() { return 6; }
-                });
+    public JButton createUtilButton(ImageIcon icon, String text) {
+        JButton btn = new JButton(text, icon) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
+                g2.setColor(branding.light);
+                g2.setStroke(new BasicStroke(3f));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
+                g2.dispose();
+                super.paintComponent(g);
             }
-        }
+        };
+        btn.setFont(branding.jetBrainsBMedium);
+        btn.setForeground(branding.light);
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setHorizontalAlignment(SwingConstants.LEFT);
+        btn.setIconTextGap(10);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btn.setPreferredSize(new Dimension(265, 44));
+        btn.setMaximumSize(new Dimension(265, 44));
+        btn.setBorder(new EmptyBorder(0, 20, 0, 20));
+        btn.setBackground(branding.dark);
+        btn.addMouseListener(new MouseAdapter() {
+            @Override public void mouseEntered(MouseEvent e) { btn.setBackground(branding.darkGray); }
+            @Override public void mouseExited(MouseEvent e) { btn.setBackground(branding.dark); }
+            @Override public void mousePressed(MouseEvent e) { btn.setBackground(branding.darkGray); }
+            @Override public void mouseReleased(MouseEvent e) { btn.setBackground(branding.darkGray); }
+        });
+
+        return btn;
     }
 
     public JButton createOtherBtn(String text) {

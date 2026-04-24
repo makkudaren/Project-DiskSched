@@ -146,7 +146,7 @@ public class ScrnSimulatorOutput extends JPanel {
                     g2.drawLine(x, RULER_H - 4, x, RULER_H + 2);
 
                     // Only label every 25 to avoid clutter for non-queue positions
-                    if (cyl % 25 == 0) {
+                    if (cyl % 25 == 0 || cyl == 199) {
                         String lbl = String.valueOf(cyl);
                         int lx = x - fm.stringWidth(lbl) / 2;
                         g2.drawString(lbl, lx, RULER_H - 7);
@@ -295,8 +295,8 @@ public class ScrnSimulatorOutput extends JPanel {
         exportPanel.add(exportPdfBtn);
         exportPanel.add(exportPngBtn);
 
-        bar.add(backBtn,     BorderLayout.WEST);
-        bar.add(center,      BorderLayout.CENTER);
+        bar.add(backBtn, BorderLayout.WEST);
+        bar.add(center, BorderLayout.CENTER);
         bar.add(exportPanel, BorderLayout.EAST);
 
         add(bar, BorderLayout.NORTH);
@@ -353,7 +353,6 @@ public class ScrnSimulatorOutput extends JPanel {
     }
 
     private JPanel buildAlgoPanel(AlgoResult r) {
-
         // Seek chart (animated)
         SeekChartPanel chart = new SeekChartPanel(r);
         chartPanels.add(chart);
@@ -390,20 +389,32 @@ public class ScrnSimulatorOutput extends JPanel {
         header.setOpaque(false);
         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
         header.setBorder(new EmptyBorder(20, 24, 8, 24));
+        header.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel titleLbl = monoLabel(r.algorithmName, branding.jetBrainsBMedium, 14);
+        JLabel titleLbl = monoLabel(r.algorithmName, branding.jetBrainsBLarge, 20);
+        titleLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
         header.add(titleLbl);
         header.add(Box.createVerticalStrut(4));
 
-        // Format queue without the initial head position
+        JPanel infoWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        infoWrapper.setOpaque(false);
+        infoWrapper.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JPanel infoPanel = new JPanel();
+        infoPanel.setOpaque(false);
+        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+        
         if (r.seekSequence != null && r.seekSequence.length > 1) {
             int[] queue = new int[r.seekSequence.length - 1];
             System.arraycopy(r.seekSequence, 1, queue, 0, queue.length);
-            header.add(monoLabel("Queue: " + joinInts(queue), branding.jetBrainsRMedium, 12));
+            infoPanel.add(monoLabel("Queue: " + joinInts(queue), branding.jetBrainsRMedium, 12));
         }
-        header.add(monoLabel("Initial Head Position: " + r.initialHead, branding.jetBrainsRMedium, 12));
-        header.add(monoLabel("Direction: " + (r.direction != null ? r.direction : "N/A"),
-                branding.jetBrainsRMedium, 12));
+        infoPanel.add(monoLabel("Initial Head Position: " + r.initialHead, branding.jetBrainsRMedium, 12));
+        infoPanel.add(monoLabel("Direction: " + (r.direction != null ? r.direction : "N/A"), 
+                    branding.jetBrainsRMedium, 12));
+
+        infoWrapper.add(infoPanel);
+        header.add(infoWrapper);
         
         JScrollPane chartScroll = new JScrollPane(chart,
                 JScrollPane.VERTICAL_SCROLLBAR_NEVER,
@@ -454,98 +465,127 @@ public class ScrnSimulatorOutput extends JPanel {
     }
 
     private void exportToPng() {
-        try {
-            String ts = new java.text.SimpleDateFormat("MMddyy_HHmmss").format(new java.util.Date());
-            File   file = new File(ts + "_DS.png");
+        String ts = new java.text.SimpleDateFormat("MMddyy_HHmmss").format(new java.util.Date());
+        String defaultName = ts + "_DS.png";
+        
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Select Export Location");
+        fileChooser.setSelectedFile(new File(defaultName));
 
-            int panelW = scrollContent.getWidth();
-            int panelH = scrollContent.getHeight();
-            BufferedImage img = new BufferedImage(panelW, panelH, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g2 = img.createGraphics();
-            g2.setColor(branding.dark);
-            g2.fillRect(0, 0, panelW, panelH);
-            scrollContent.paint(g2);
-            g2.dispose();
-            ImageIO.write(img, "PNG", file);
-
-            JOptionPane.showMessageDialog(this,
-                    "Exported to: " + file.getAbsolutePath(),
-                    "Export Successful", JOptionPane.INFORMATION_MESSAGE);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Export failed: " + ex.getMessage(),
-                    "Export Error", JOptionPane.ERROR_MESSAGE);
+        if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            
+            try {
+                int exportWidth = mainScroll.getViewport().getWidth(); 
+                int exportHeight = scrollContent.getPreferredSize().height;
+                
+                BufferedImage img = new BufferedImage(exportWidth, exportHeight, BufferedImage.TYPE_INT_RGB);
+                Graphics2D g2 = img.createGraphics();
+                
+                scrollContent.setSize(new Dimension(exportWidth, exportHeight));
+                scrollContent.doLayout(); 
+                
+                g2.setColor(branding.dark);
+                g2.fillRect(0, 0, exportWidth, exportHeight);
+                
+                scrollContent.printAll(g2);
+                g2.dispose();
+                
+                if (ImageIO.write(img, "PNG", file)) {
+                    JOptionPane.showMessageDialog(this, "Exported successfully to:\n" + file.getAbsolutePath());
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Export failed: " + ex.getMessage(), "Permission Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
     private void exportToPdf() {
-        try {
-            String ts = new java.text.SimpleDateFormat("MMddyy_HHmmss").format(new java.util.Date());
-            File   file = new File(ts + "_DS.pdf");
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Export Results as PDF");
+        String ts = new java.text.SimpleDateFormat("MMddyy_HHmmss").format(new java.util.Date());
+        fileChooser.setSelectedFile(new File(ts + "_DS.pdf"));
 
-            int panelW = scrollContent.getWidth();
-            int panelH = scrollContent.getHeight();
-            BufferedImage img = new BufferedImage(panelW, panelH, BufferedImage.TYPE_INT_RGB);
-            Graphics2D g2 = img.createGraphics();
-            g2.setColor(branding.dark);
-            g2.fillRect(0, 0, panelW, panelH);
-            scrollContent.paint(g2);
-            g2.dispose();
+        if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
 
-            ByteArrayOutputStream jpegBaos = new ByteArrayOutputStream();
-            ImageIO.write(img, "JPEG", jpegBaos);
-            byte[] jpegBytes = jpegBaos.toByteArray();
+            try {
+                int panelW = mainScroll.getViewport().getWidth();
+                int panelH = scrollContent.getPreferredSize().height;
+                
+                scrollContent.setSize(new Dimension(panelW, panelH));
+                scrollContent.doLayout();
 
-            final double PT_PER_PX = 72.0 / 96.0;
-            int pageW = (int) Math.ceil(panelW * PT_PER_PX);
-            int pageH = (int) Math.ceil(panelH * PT_PER_PX);
+                BufferedImage img = new BufferedImage(panelW, panelH, BufferedImage.TYPE_INT_RGB);
+                Graphics2D g2 = img.createGraphics();
+                
+                g2.setColor(branding.dark);
+                g2.fillRect(0, 0, panelW, panelH);
+                
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                
+                scrollContent.printAll(g2);
+                g2.dispose();
+                
+                ByteArrayOutputStream jpegBaos = new ByteArrayOutputStream();
+                ImageIO.write(img, "JPEG", jpegBaos);
+                byte[] jpegBytes = jpegBaos.toByteArray();
+                
+                final double PT_PER_PX = 72.0 / 96.0;
+                int pageW = (int) Math.ceil(panelW * PT_PER_PX);
+                int pageH = (int) Math.ceil(panelH * PT_PER_PX);
+                
+                ByteArrayOutputStream pdfBaos = new ByteArrayOutputStream();
+                int[] off = new int[6];
 
-            ByteArrayOutputStream pdfBaos = new ByteArrayOutputStream();
-            int[] off = new int[6];
+                writePdf(pdfBaos, "%PDF-1.4\n%\u00e2\u00e3\u00cf\u00d3\n");
 
-            writePdf(pdfBaos, "%PDF-1.4\n%\u00e2\u00e3\u00cf\u00d3\n");
+                off[1] = pdfBaos.size();
+                writePdf(pdfBaos, "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
 
-            off[1] = pdfBaos.size();
-            writePdf(pdfBaos, "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+                off[2] = pdfBaos.size();
+                writePdf(pdfBaos, "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
 
-            off[2] = pdfBaos.size();
-            writePdf(pdfBaos, "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n");
+                off[3] = pdfBaos.size();
+                writePdf(pdfBaos, "3 0 obj\n<< /Type /Page /Parent 2 0 R "
+                        + "/MediaBox [0 0 " + pageW + " " + pageH + "] "
+                        + "/Contents 5 0 R /Resources << /XObject << /Img 4 0 R >> >> >>\nendobj\n");
 
-            off[3] = pdfBaos.size();
-            writePdf(pdfBaos, "3 0 obj\n<< /Type /Page /Parent 2 0 R "
-                    + "/MediaBox [0 0 " + pageW + " " + pageH + "] "
-                    + "/Contents 5 0 R /Resources << /XObject << /Img 4 0 R >> >> >>\nendobj\n");
+                off[4] = pdfBaos.size();
+                writePdf(pdfBaos, "4 0 obj\n<< /Type /XObject /Subtype /Image "
+                        + "/Width " + panelW + " /Height " + panelH
+                        + " /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode "
+                        + "/Length " + jpegBytes.length + " >>\nstream\n");
+                pdfBaos.write(jpegBytes);
+                writePdf(pdfBaos, "\nendstream\nendobj\n");
+                
+                String cont = "q\n" + pageW + " 0 0 " + pageH + " 0 0 cm\n/Img Do\nQ\n";
+                byte[] contBytes = cont.getBytes("US-ASCII");
+                off[5] = pdfBaos.size();
+                writePdf(pdfBaos, "5 0 obj\n<< /Length " + contBytes.length + " >>\nstream\n");
+                pdfBaos.write(contBytes);
+                writePdf(pdfBaos, "\nendstream\nendobj\n");
 
-            off[4] = pdfBaos.size();
-            writePdf(pdfBaos, "4 0 obj\n<< /Type /XObject /Subtype /Image "
-                    + "/Width " + panelW + " /Height " + panelH
-                    + " /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode "
-                    + "/Length " + jpegBytes.length + " >>\nstream\n");
-            pdfBaos.write(jpegBytes);
-            writePdf(pdfBaos, "\nendstream\nendobj\n");
+                int xrefOff = pdfBaos.size();
+                writePdf(pdfBaos, "xref\n0 6\n0000000000 65535 f \n");
+                for (int i = 1; i <= 5; i++)
+                    writePdf(pdfBaos, String.format("%010d 00000 n \n", off[i]));
+                
+                writePdf(pdfBaos, "trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n" + xrefOff + "\n%%EOF\n");
+                
+                try (FileOutputStream fos = new FileOutputStream(file)) { 
+                    pdfBaos.writeTo(fos); 
+                }
 
-            String cont = "q\n" + pageW + " 0 0 " + pageH + " 0 0 cm\n/Img Do\nQ\n";
-            byte[] contBytes = cont.getBytes("US-ASCII");
-            off[5] = pdfBaos.size();
-            writePdf(pdfBaos, "5 0 obj\n<< /Length " + contBytes.length + " >>\nstream\n");
-            pdfBaos.write(contBytes);
-            writePdf(pdfBaos, "\nendstream\nendobj\n");
-
-            int xrefOff = pdfBaos.size();
-            writePdf(pdfBaos, "xref\n0 6\n0000000000 65535 f \n");
-            for (int i = 1; i <= 5; i++)
-                writePdf(pdfBaos, String.format("%010d 00000 n \n", off[i]));
-            writePdf(pdfBaos, "trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n" + xrefOff + "\n%%EOF\n");
-
-            try (FileOutputStream fos = new FileOutputStream(file)) { pdfBaos.writeTo(fos); }
-
-            JOptionPane.showMessageDialog(this,
-                    "Exported to: " + file.getAbsolutePath(),
-                    "Export Successful", JOptionPane.INFORMATION_MESSAGE);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Export failed: " + ex.getMessage(),
-                    "Export Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Exported successfully to:\n" + file.getAbsolutePath());
+                
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Export failed: " + ex.getMessage(), "PDF Error", JOptionPane.ERROR_MESSAGE);
+            } finally {
+                scrollContent.revalidate();
+            }
         }
     }
 

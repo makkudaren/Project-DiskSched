@@ -13,6 +13,10 @@ public class ScrnSplashScreen extends JPanel {
     private GridBagConstraints gbc;
     private JButton startBtn;
 
+    private float titleOpacity = 0.0f;
+    private float buttonOpacity = 0.0f;
+    private Timer animationTimer;
+
     public ScrnSplashScreen(MainEngine mainEngine, Branding branding, JPanel parentContainer) {
         this.branding = branding;
         this.mainEngine = mainEngine;
@@ -26,34 +30,63 @@ public class ScrnSplashScreen extends JPanel {
     }
     
     public void initializeMainPanel() {
-        JLabel simulatorLabel = new JLabel("SpinCycle");
+        JLabel simulatorLabel = new JLabel("DiskSched") {
+            @Override
+            public void paint(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, titleOpacity));
+                super.paint(g2);
+                g2.dispose();
+            }
+        };
         simulatorLabel.setFont(branding.jetBrainsBGiant);
         simulatorLabel.setForeground(branding.light);
 
-        JLabel subtitleLabel = new JLabel("Virtual Interactive Page Replacement Algorithm");        
-        subtitleLabel.setFont(branding.jetBrainsBMedium);
-        subtitleLabel.setForeground(branding.light);
-
-
-
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.insets = new Insets(0, 0, 0, 0);
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.insets = new Insets(0, 0, 30, 0);
         add(simulatorLabel, gbc);
 
-        gbc.gridy = 1;
-        gbc.insets = new Insets(0, 0, 30, 0);
-        add(subtitleLabel, gbc);
-
         startBtn = createButton("Start");
+        startBtn.setVisible(false);
         startBtn.addActionListener(e -> {
             CardLayout cl = (CardLayout) parentContainer.getLayout();
             cl.show(parentContainer, "MainMenu");
         });
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 1;
+        
+        gbc.gridy = 1;
         add(startBtn, gbc);
+
+        startEntranceAnimation();
+    }
+
+    private void startEntranceAnimation() {
+        final long animationStartTime = System.currentTimeMillis();
+
+        animationTimer = new Timer(50, e -> {
+            long elapsed = System.currentTimeMillis() - animationStartTime;
+
+            if (titleOpacity < 1.0f) {
+                titleOpacity = Math.min(1.0f, titleOpacity + 0.05f);
+            }
+            
+            if (elapsed > 1500) {
+                if (!startBtn.isVisible()) {
+                    startBtn.setVisible(true);
+                }
+                if (buttonOpacity < 1.0f) {
+                    buttonOpacity = Math.min(1.0f, buttonOpacity + 0.05f);
+                }
+            }
+
+            repaint();
+            
+            if (titleOpacity >= 1.0f && buttonOpacity >= 1.0f) {
+                animationTimer.stop();
+            }
+        });
+        
+        animationTimer.setInitialDelay(0); 
+        animationTimer.start();
     }
 
     public JButton createButton(String text) {

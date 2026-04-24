@@ -32,7 +32,7 @@ public class Branding {
     public Color light = Color.decode("#ffffff");
     public Color darkGray = Color.decode("#2e2e2e");
     public Color lightGray = Color.decode("#d1d1d1");
-    public Color selected = Color.decode("#009DFF");
+    public Color selected = Color.decode("#00801C");
 
     public boolean isDark = true;
     public void toggleTheme() {

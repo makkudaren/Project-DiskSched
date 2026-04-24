@@ -182,6 +182,7 @@ public class ScrnSimulatorOutput extends JPanel {
                     g2.setColor(branding.light);
                     g2.setStroke(new BasicStroke(2.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                     g2.drawLine(px, py, cx, cy);
+                    drawArrowHead(g2, px, py, cx, cy);
                 }
 
                 // Dashed vertical guide line (faint)
@@ -200,6 +201,31 @@ public class ScrnSimulatorOutput extends JPanel {
         private int cylToX(int cyl, int chartLeft, int chartW) {
             return chartLeft + (int) Math.round(cyl / 199.0 * chartW);
         }
+    }
+
+    private void drawArrowHead(Graphics2D g2, int x1, int y1, int x2, int y2) {
+        double phi = Math.toRadians(25);
+        int barb = 12;
+        
+        double dy = y2 - y1;
+        double dx = x2 - x1;
+        double theta = Math.atan2(dy, dx);
+        
+        int xLeft = (int) (x2 - barb * Math.cos(theta + phi));
+        int yLeft = (int) (y2 - barb * Math.sin(theta + phi));
+        int xRight = (int) (x2 - barb * Math.cos(theta - phi));
+        int yRight = (int) (y2 - barb * Math.sin(theta - phi));
+        
+        int[] xPoints = {x2, xLeft, xRight};
+        int[] yPoints = {y2, yLeft, yRight};
+        Polygon arrowHead = new Polygon(xPoints, yPoints, 3);
+        
+        g2.setColor(branding.dark);
+        g2.fill(arrowHead);
+        
+        g2.setColor(branding.light);
+        g2.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g2.draw(arrowHead);
     }
 
     public ScrnSimulatorOutput(MainEngine mainEngine, Branding branding, JPanel parentContainer) {
@@ -476,7 +502,7 @@ public class ScrnSimulatorOutput extends JPanel {
             File file = fileChooser.getSelectedFile();
             
             try {
-                int exportWidth = mainScroll.getViewport().getWidth(); 
+                int exportWidth = Math.max(mainScroll.getViewport().getWidth(), scrollContent.getPreferredSize().width);
                 int exportHeight = scrollContent.getPreferredSize().height;
                 
                 BufferedImage img = new BufferedImage(exportWidth, exportHeight, BufferedImage.TYPE_INT_RGB);
@@ -511,7 +537,7 @@ public class ScrnSimulatorOutput extends JPanel {
             File file = fileChooser.getSelectedFile();
 
             try {
-                int panelW = mainScroll.getViewport().getWidth();
+                int panelW = Math.max(mainScroll.getViewport().getWidth(), scrollContent.getPreferredSize().width);
                 int panelH = scrollContent.getPreferredSize().height;
                 
                 scrollContent.setSize(new Dimension(panelW, panelH));

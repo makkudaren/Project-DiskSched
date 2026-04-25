@@ -1,3 +1,14 @@
+error id: file:///C:/Users/Mac%20Calimba/Documents/GitHub/Project-DiskSched/src/algorithm/CSCAN.java:_empty_/Array#length.
+file:///C:/Users/Mac%20Calimba/Documents/GitHub/Project-DiskSched/src/algorithm/CSCAN.java
+empty definition using pc, found symbol in pc: _empty_/Array#length.
+empty definition using semanticdb
+empty definition using fallback
+non-local guesses:
+
+offset: 1954
+uri: file:///C:/Users/Mac%20Calimba/Documents/GitHub/Project-DiskSched/src/algorithm/CSCAN.java
+text:
+```scala
 package algorithm;
 
 import graphics.ScrnSimulatorOutput.AlgoResult;
@@ -55,7 +66,7 @@ public class CSCAN implements DiskSchedulingAlgorithm {
         }
 
         int totalSeekTime = 0;
-        for (int i = 1; i < seekSequence.length; i++) {
+        for (int i = 1; i < seekSequence.l@@ength; i++) {
             totalSeekTime += Math.abs(seekSequence[i] - seekSequence[i - 1]);
         }
 
@@ -68,3 +79,9 @@ public class CSCAN implements DiskSchedulingAlgorithm {
         return r;
     }
 }
+```
+
+
+#### Short summary: 
+
+empty definition using pc, found symbol in pc: _empty_/Array#length.

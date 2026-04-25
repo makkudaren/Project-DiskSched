@@ -1,3 +1,14 @@
+error id: file:///C:/Users/Mac%20Calimba/Documents/GitHub/Project-DiskSched/src/algorithm/CSCAN.java:java/lang/Math#
+file:///C:/Users/Mac%20Calimba/Documents/GitHub/Project-DiskSched/src/algorithm/CSCAN.java
+empty definition using pc, found symbol in pc: java/lang/Math#
+empty definition using semanticdb
+empty definition using fallback
+non-local guesses:
+
+offset: 2110
+uri: file:///C:/Users/Mac%20Calimba/Documents/GitHub/Project-DiskSched/src/algorithm/CSCAN.java
+text:
+```scala
 package algorithm;
 
 import graphics.ScrnSimulatorOutput.AlgoResult;
@@ -23,6 +34,7 @@ public class CSCAN implements DiskSchedulingAlgorithm {
                 if (req >= headPosition) order.add(req);
             }
 
+            // Go to MAX boundary if not already there
             if (headPosition != MAX_CYLINDER && (order.isEmpty() || order.get(order.size() - 1) != MAX_CYLINDER)) {
                 order.add(MAX_CYLINDER);
             }
@@ -38,6 +50,7 @@ public class CSCAN implements DiskSchedulingAlgorithm {
                 if (sorted[i] <= headPosition) order.add(sorted[i]);
             }
 
+            // Go to MIN boundary if not already there
             if (headPosition != MIN_CYLINDER && (order.isEmpty() || order.get(order.size() - 1) != MIN_CYLINDER)) {
                 order.add(MIN_CYLINDER);
             }
@@ -56,7 +69,7 @@ public class CSCAN implements DiskSchedulingAlgorithm {
 
         int totalSeekTime = 0;
         for (int i = 1; i < seekSequence.length; i++) {
-            totalSeekTime += Math.abs(seekSequence[i] - seekSequence[i - 1]);
+            totalSeekTime += @@Math.abs(seekSequence[i] - seekSequence[i - 1]);
         }
 
         AlgoResult r = new AlgoResult();
@@ -68,3 +81,9 @@ public class CSCAN implements DiskSchedulingAlgorithm {
         return r;
     }
 }
+```
+
+
+#### Short summary: 
+
+empty definition using pc, found symbol in pc: java/lang/Math#

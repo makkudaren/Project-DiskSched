@@ -1,3 +1,14 @@
+error id: file:///C:/Users/Mac%20Calimba/Documents/GitHub/Project-DiskSched/src/algorithm/CSCAN.java:java/util/List#size().
+file:///C:/Users/Mac%20Calimba/Documents/GitHub/Project-DiskSched/src/algorithm/CSCAN.java
+empty definition using pc, found symbol in pc: java/util/List#size().
+empty definition using semanticdb
+empty definition using fallback
+non-local guesses:
+
+offset: 1804
+uri: file:///C:/Users/Mac%20Calimba/Documents/GitHub/Project-DiskSched/src/algorithm/CSCAN.java
+text:
+```scala
 package algorithm;
 
 import graphics.ScrnSimulatorOutput.AlgoResult;
@@ -50,7 +61,7 @@ public class CSCAN implements DiskSchedulingAlgorithm {
 
         int[] seekSequence = new int[order.size() + 1];
         seekSequence[0] = headPosition;
-        for (int i = 0; i < order.size(); i++) {
+        for (int i = 0; i < order.si@@ze(); i++) {
             seekSequence[i + 1] = order.get(i);
         }
 
@@ -68,3 +79,9 @@ public class CSCAN implements DiskSchedulingAlgorithm {
         return r;
     }
 }
+```
+
+
+#### Short summary: 
+
+empty definition using pc, found symbol in pc: java/util/List#size().

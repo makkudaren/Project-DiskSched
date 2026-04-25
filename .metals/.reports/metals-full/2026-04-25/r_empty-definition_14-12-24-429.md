@@ -1,3 +1,14 @@
+error id: file:///C:/Users/Mac%20Calimba/Documents/GitHub/Project-DiskSched/src/algorithm/LOOK.java:java/util/List#size().
+file:///C:/Users/Mac%20Calimba/Documents/GitHub/Project-DiskSched/src/algorithm/LOOK.java
+empty definition using pc, found symbol in pc: java/util/List#size().
+empty definition using semanticdb
+empty definition using fallback
+non-local guesses:
+
+offset: 1293
+uri: file:///C:/Users/Mac%20Calimba/Documents/GitHub/Project-DiskSched/src/algorithm/LOOK.java
+text:
+```scala
 package algorithm;
 
 import graphics.ScrnSimulatorOutput.AlgoResult;
@@ -5,13 +16,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class CSCAN implements DiskSchedulingAlgorithm {
+public class LOOK implements DiskSchedulingAlgorithm {
 
     @Override
     public AlgoResult run(String algorithmName, int[] requests, int headPosition, String direction) {
-        final int MIN_CYLINDER = 0;
-        final int MAX_CYLINDER = 199;
-
         int[] sorted = Arrays.copyOf(requests, requests.length);
         Arrays.sort(sorted);
 
@@ -23,14 +31,8 @@ public class CSCAN implements DiskSchedulingAlgorithm {
                 if (req >= headPosition) order.add(req);
             }
 
-            if (headPosition != MAX_CYLINDER && (order.isEmpty() || order.get(order.size() - 1) != MAX_CYLINDER)) {
-                order.add(MAX_CYLINDER);
-            }
-
-            order.add(MIN_CYLINDER);
-
-            for (int req : sorted) {
-                if (req < headPosition) order.add(req);
+            for (int i = sorted.length - 1; i >= 0; i--) {
+                if (sorted[i] < headPosition) order.add(sorted[i]);
             }
         } else {
 
@@ -38,19 +40,14 @@ public class CSCAN implements DiskSchedulingAlgorithm {
                 if (sorted[i] <= headPosition) order.add(sorted[i]);
             }
 
-            if (headPosition != MIN_CYLINDER && (order.isEmpty() || order.get(order.size() - 1) != MIN_CYLINDER)) {
-                order.add(MIN_CYLINDER);
-            }
-
-            order.add(MAX_CYLINDER);
-            for (int i = sorted.length - 1; i >= 0; i--) {
-                if (sorted[i] > headPosition) order.add(sorted[i]);
+            for (int req : sorted) {
+                if (req > headPosition) order.add(req);
             }
         }
 
         int[] seekSequence = new int[order.size() + 1];
         seekSequence[0] = headPosition;
-        for (int i = 0; i < order.size(); i++) {
+        for (int i = 0; i < order.@@size(); i++) {
             seekSequence[i + 1] = order.get(i);
         }
 
@@ -68,3 +65,9 @@ public class CSCAN implements DiskSchedulingAlgorithm {
         return r;
     }
 }
+```
+
+
+#### Short summary: 
+
+empty definition using pc, found symbol in pc: java/util/List#size().
